@@ -33,6 +33,12 @@ class TestResolveGeometry:
         from ott.geometry.costs import Cosine
         assert isinstance(geo.cost_fn, Cosine)
 
+    def test_hyperbolic_string(self):
+        geo = resolve_geometry("hyperbolic")
+        assert geo.kind == "pointcloud"
+        from flowl.costs.hyperbolic import HyperbolicCost
+        assert isinstance(geo.cost_fn, HyperbolicCost)
+
     def test_custom_cost_fn(self):
         from ott.geometry.costs import PNormP
         cost = PNormP(p=1.5)
@@ -131,3 +137,20 @@ class TestDifferentGeometriesDifferentEnergies:
 
         assert div_default >= 0
         assert div_p15 >= 0
+
+    def test_hyperbolic_vs_euclidean_sinkdiv(self):
+        from flowl.backends.sinkhorn import sinkdiv
+
+        # Points well inside the unit ball
+        x = jnp.array([[0.3, 0.1], [0.0, 0.4], [0.2, 0.2]])
+        y = jnp.array([[0.1, 0.3], [0.4, 0.0], [0.0, 0.2]])
+
+        geo_euc = resolve_geometry("euclidean")
+        geo_hyp = resolve_geometry("hyperbolic")
+
+        div_euc = float(sinkdiv(x, y, geometry=geo_euc))
+        div_hyp = float(sinkdiv(x, y, geometry=geo_hyp))
+
+        assert div_euc >= 0
+        assert div_hyp >= 0
+        assert div_euc != pytest.approx(div_hyp, abs=1e-6)

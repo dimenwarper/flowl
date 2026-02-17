@@ -44,8 +44,8 @@ def resolve_geometry(geometry: Any = None, **kwargs: Any) -> SpaceGeometry:
     ----------
     geometry
         A string shortcut (``"euclidean"``, ``"cosine"``, ``"sq_euclidean"``,
-        ``"graph"``, ``"grid"``), an OTT-JAX ``CostFn`` instance, or *None*
-        for the default squared-Euclidean cost.
+        ``"hyperbolic"``, ``"graph"``, ``"grid"``), an OTT-JAX ``CostFn``
+        instance, or *None* for the default squared-Euclidean cost.
     **kwargs
         Extra arguments forwarded to :class:`SpaceGeometry` (e.g.
         ``graph_laplacian`` or ``grid_xs``).
@@ -54,6 +54,11 @@ def resolve_geometry(geometry: Any = None, **kwargs: Any) -> SpaceGeometry:
         return SpaceGeometry(kind="pointcloud", cost_fn=None)
 
     if isinstance(geometry, str):
+        if geometry == "hyperbolic":
+            from flowl.costs.hyperbolic import HyperbolicCost
+
+            return SpaceGeometry(kind="pointcloud", cost_fn=HyperbolicCost())
+
         if geometry in _COST_SHORTCUTS:
             from ott.geometry import costs as ott_costs
 
@@ -78,7 +83,7 @@ def resolve_geometry(geometry: Any = None, **kwargs: Any) -> SpaceGeometry:
 
         raise ValueError(
             f"Unknown geometry string: {geometry!r}. "
-            f"Supported: {sorted(list(_COST_SHORTCUTS) + ['graph', 'grid'])}."
+            f"Supported: {sorted(list(_COST_SHORTCUTS) + ['graph', 'grid', 'hyperbolic'])}."
         )
 
     # Assume it's an OTT-JAX CostFn instance
