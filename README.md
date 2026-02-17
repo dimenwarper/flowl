@@ -41,6 +41,31 @@ print(posterior.mean("mu"))          # global mean estimate
 print(posterior.mean("school_1"))    # shrunk toward global mean
 ```
 
+## Morph interpolation
+
+Compare displacement interpolation trajectories under different geometries:
+
+![Euclidean vs Hyperbolic morph](examples/morph_comparison.gif)
+
+```python
+from flowl import Cloud, Morph, Space, relax
+from flowl.core.geometry import resolve_geometry
+
+geo = resolve_geometry("hyperbolic")
+
+with Space(geometry="hyperbolic") as space:
+    src = Cloud.from_samples("source", source_pts, fixed=True)
+    src.covers(source_pts)
+    tgt = Cloud.from_samples("target", target_pts, fixed=True)
+    tgt.covers(target_pts)
+    clouds = {"source": src, "target": tgt}
+
+posterior = relax(space, clouds, lr=0.01, epsilon=0.001, max_steps=500)
+morph = Morph(posterior["source"], posterior["target"], geometry=geo, epsilon=0.001)
+
+positions_at_half = morph.at(0.5)  # interpolated particle positions at t=0.5
+```
+
 ## Core concepts
 
 ### Two-phase execution
