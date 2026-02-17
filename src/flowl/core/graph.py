@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import NamedTuple
 
 from flowl.core.constraints import Constraint
+from flowl.core.geometry import SpaceGeometry
 
 
 class CloudMeta(NamedTuple):
@@ -23,6 +24,7 @@ class ModelGraph:
 
     clouds: dict[str, CloudMeta] = field(default_factory=dict)
     constraints: list[Constraint] = field(default_factory=list)
+    geometry: SpaceGeometry = field(default_factory=lambda: SpaceGeometry(kind="pointcloud"))
 
     def add_cloud(self, meta: CloudMeta) -> None:
         if meta.name in self.clouds:
@@ -36,6 +38,7 @@ class ModelGraph:
         return FrozenGraph(
             clouds=dict(self.clouds),
             constraints=tuple(self.constraints),
+            geometry=self.geometry,
         )
 
 
@@ -45,3 +48,4 @@ class FrozenGraph:
 
     clouds: dict[str, CloudMeta]
     constraints: tuple[Constraint, ...]
+    geometry: SpaceGeometry = field(default_factory=lambda: SpaceGeometry(kind="pointcloud"))

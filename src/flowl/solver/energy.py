@@ -18,27 +18,32 @@ def total_energy(
 ) -> Array:
     """Pure function: sum of Sinkhorn divergences over all constraints."""
     energy = jnp.float32(0.0)
+    geometry = graph.geometry
 
     for constraint in graph.constraints:
         if isinstance(constraint, DriftConstraint):
             parent = cloud_states[constraint.parent]
             child = cloud_states[constraint.child]
             energy = energy + constraint.elasticity * sinkdiv(
-                parent.positions, child.positions, epsilon=epsilon
+                parent.positions, child.positions,
+                geometry=geometry, epsilon=epsilon,
             )
 
         elif isinstance(constraint, CoversConstraint):
             cloud = cloud_states[constraint.cloud]
             energy = energy + sinkdiv(
-                cloud.positions, constraint.data, epsilon=epsilon
+                cloud.positions, constraint.data,
+                geometry=geometry, epsilon=epsilon,
             )
 
         elif isinstance(constraint, WarpConstraint):
             source = cloud_states[constraint.source]
             target = cloud_states[constraint.target]
-            div = sinkdiv(source.positions, target.positions, epsilon=epsilon)
+            div = sinkdiv(
+                source.positions, target.positions,
+                geometry=geometry, epsilon=epsilon,
+            )
             if constraint.max_distance < float("inf"):
-                # Soft penalty for exceeding max distance
                 penalty = jnp.maximum(div - constraint.max_distance, 0.0) ** 2
                 energy = energy + div + penalty
             else:

@@ -6,6 +6,7 @@ import jax.numpy as jnp
 
 from flowl._types import Array
 from flowl.backends.sinkhorn import solve_ot
+from flowl.core.geometry import SpaceGeometry
 
 
 def displacement_interpolation(
@@ -13,10 +14,11 @@ def displacement_interpolation(
     y: Array,
     t: float = 0.5,
     *,
+    geometry: SpaceGeometry | None = None,
     epsilon: float = 0.05,
 ) -> Array:
     """Compute displacement interpolation at time *t* between x and y."""
-    out = solve_ot(x, y, epsilon=epsilon)
+    out = solve_ot(x, y, geometry=geometry, epsilon=epsilon)
     coupling = out.matrix  # (n, m)
     # Normalize rows to get transport plan per source particle
     row_sums = coupling.sum(axis=1, keepdims=True)
